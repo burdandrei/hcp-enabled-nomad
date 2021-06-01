@@ -19,7 +19,7 @@ data "terraform_remote_state" "vpc" {
 }
 
 resource "aws_vpc" "peer" {
-  cidr_block = data.terraform_remote_state.vpc.cidr_block
+  cidr_block = data.terraform_remote_state.vpc.outputs.cidr_block
 }
 
 data "aws_arn" "peer" {
