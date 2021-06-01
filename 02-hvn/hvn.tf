@@ -8,8 +8,23 @@ provider "aws" {
   region = var.region
 }
 
+data "terraform_remote_state" "vpc" {
+  backend = "remote"
+  config = {
+    organization = "bandrei_hc"
+    workspaces = {
+      name = "VPC"
+    }
+  }
+}
+
+resource "aws_instance" "redis_server" {
+  # Terraform 0.12 and later: use the "outputs.<OUTPUT NAME>" attribute
+  subnet_id = data.terraform_remote_state.vpc.outputs.subnet_id
+}
+
 resource "aws_vpc" "peer" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = data.terraform_remote_state.vpc.cidr_block
 }
 
 data "aws_arn" "peer" {
