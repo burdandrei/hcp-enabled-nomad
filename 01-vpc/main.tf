@@ -10,7 +10,7 @@ module "vpc" {
   }
   tags = {
     Terraform = "true"
-    Name      = "hc_demo"
+    Name      = var.name
   }
 }
 
