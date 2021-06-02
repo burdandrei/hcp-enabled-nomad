@@ -18,7 +18,7 @@ data "terraform_remote_state" "hcp" {
 }
 
 provider "vault" {
-  address = data.terraform_remote_state.hcp.outputs.vault_public_endpoint_url
+  address = "https://${data.terraform_remote_state.hcp.outputs.vault_public_endpoint_url}:8200"
   namespace = "admin"
   token = data.terraform_remote_state.hcp.outputs.vault_admin_token
 }
@@ -38,5 +38,5 @@ resource "vault_token_auth_backend_role" "nomad-cluster" {
   orphan              = true
   token_period        = "259200"
   renewable           = true
-  explicit_max_ttl    = "0"
+  token_explicit_max_ttl    = 0
 }
