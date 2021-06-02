@@ -36,7 +36,7 @@ apt-get install -y docker-ce docker-ce-cli containerd.io
 #####
 
 echo "Determining local IP address"
-LOCAL_IPV4=$(hostname --ip-address)
+LOCAL_IPV4=$(ec2metadata --local-ipv4)
 
 
 mkdir -p /etc/systemd/resolved.conf.d
