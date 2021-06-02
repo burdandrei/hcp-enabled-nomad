@@ -35,6 +35,16 @@ data "terraform_remote_state" "hcp" {
   }
 }
 
+data "terraform_remote_state" "vault_config" {
+  backend = "remote"
+  config = {
+    organization = "bandrei_hc"
+    workspaces = {
+      name = "03-vault-config"
+    }
+  }
+}
+
 #---------------------------------------------------------------------------------------------------------------------
 # DEPLOY THE SERVER NODES
 # ---------------------------------------------------------------------------------------------------------------------
@@ -65,7 +75,8 @@ module "servers" {
     nomad_region     = var.nomad_region,
     nomad_datacenter = var.cluster_name,
     consul_ca_file   = base64decode(data.terraform_remote_state.hcp.outputs.consul_ca_file),
-    consul_acl_token = data.terraform_remote_state.hcp.outputs.consul_root_token_secret_id
+    consul_acl_token = data.terraform_remote_state.hcp.outputs.consul_root_token_secret_id,
+    vault_token = data.terraform_remote_state.vault_config.outputs.nomad_server_vault_token
   })
 
   subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets

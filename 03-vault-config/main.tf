@@ -40,3 +40,14 @@ resource "vault_token_auth_backend_role" "nomad-cluster" {
   renewable           = true
   token_explicit_max_ttl    = 0
 }
+
+resource "vault_token" "nomad_server" {
+  policies = ["nomad-server"]
+  renewable = true
+  ttl = "72h"
+  no_parent = true
+}
+
+output "nomad_server_vault_token" {
+  value = vault_token.nomad_server.client_token
+}
