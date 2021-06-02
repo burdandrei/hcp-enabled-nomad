@@ -51,14 +51,14 @@ EOSDRCF
 cat << EOSDRLF >/etc/systemd/resolved.conf.d/listen.conf
 # Enable listener on private ip:
 [Resolve]
-DNSStubListenerExtra=${LOCAL_IPV4}
+DNSStubListenerExtra=$${LOCAL_IPV4}
 EOSDRLF
 
 systemctl restart systemd-resolved.service
 
 cat << EODDJ >/etc/docker/daemon.json
 {
-  "dns": ["${LOCAL_IPV4}"],
+  "dns": ["$${LOCAL_IPV4}"],
   "dns-search": ["service.consul"]
 }
 EODDJ
