@@ -193,7 +193,7 @@ EONCF
 cat << EONVCF >/etc/nomad.d/vault.hcl
 vault {
   enabled = true
-  address = "${vault_endpoint}"
+  address = "https://${vault_endpoint}"
 }
 EONVCF
 
