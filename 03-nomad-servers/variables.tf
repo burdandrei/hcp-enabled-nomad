@@ -51,3 +51,14 @@ variable "allowed_inbound_cidr_blocks" {
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
+
+
+variable "nomad_region" {
+  type        = string
+  description = "Nomad Region"
+}
+
+variable "nomad_datacenter" {
+  type        = string
+  description = "Nomad Datacenter"
+}

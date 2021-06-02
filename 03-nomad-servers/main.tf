@@ -40,13 +40,14 @@ data "terraform_remote_state" "hcp" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "servers" {
-  source  = "hashicorp/consul/aws"
-  version = "0.10.1"
-  # insert the 4 required variables here
-  ami_id       = data.aws_ami.base.image_id
-  spot_price   = var.spot_price
-  vpc_id       = data.terraform_remote_state.vpc.outputs.vpc_id
-  ssh_key_name = var.ssh_key_name
+  source  = "hashicorp/consul/aws//modules/consul-cluster"
+  version = "0.8.6"
+  # insert the 14 required variables here
+  allowed_inbound_cidr_blocks = ["0.0.0.0/0"]
+  ami_id                      = data.aws_ami.base.image_id
+  spot_price                  = var.spot_price
+  vpc_id                      = data.terraform_remote_state.vpc.outputs.vpc_id
+  ssh_key_name                = var.ssh_key_name
 
   # end of required variables
 
@@ -73,7 +74,7 @@ module "servers" {
   # deployment, we strongly recommend you limit this to the IP address ranges of known, trusted servers inside your VPC.
   allowed_ssh_cidr_blocks = ["0.0.0.0/0"]
 
-  allowed_inbound_cidr_blocks = ["0.0.0.0/0"]
+
 
 }
 
@@ -82,7 +83,7 @@ module "servers" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "nomad_security_group_rules" {
-  source  = "hashicorp/nomad/aws"
+  source  = "hashicorp/nomad/aws///modules/nomad-security-group-rules"
   version = "0.9.0"
 
   security_group_id           = module.servers.security_group_id
