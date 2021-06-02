@@ -124,6 +124,8 @@ EOCSU
 
 cat << EONEF >/etc/default/nomad
 CONSUL_HTTP_TOKEN=${consul_acl_token}
+VAULT_NAMESPACE=admin
+VAULT_TOKEN=${vault_token}
 EONEF
 
 mkdir -p /etc/nomad.d/
@@ -140,6 +142,14 @@ server {
   bootstrap_expect = 3
 }
 EONCF
+
+cat << EONVF >/etc/nomad.d/vault.hcl
+vault {
+  enabled          = true
+  address          = "https://${vault_endpoint}:8200"
+  create_from_role = "nomad-cluster"
+}
+EONVF
 
 cat << EONSU >/etc/systemd/system/nomad.service
 [Unit]

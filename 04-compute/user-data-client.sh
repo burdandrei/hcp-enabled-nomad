@@ -174,6 +174,7 @@ EOCSU
 
 cat << EONEF >/etc/default/nomad
 CONSUL_HTTP_TOKEN=${consul_acl_token}
+VAULT_NAMESPACE=admin
 EONEF
 
 mkdir -p /etc/nomad.d/
@@ -193,7 +194,7 @@ EONCF
 cat << EONVCF >/etc/nomad.d/vault.hcl
 vault {
   enabled = true
-  address = "https://${vault_endpoint}"
+  address = "https://${vault_endpoint}:8200"
 }
 EONVCF
 
