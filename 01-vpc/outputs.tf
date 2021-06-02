@@ -14,10 +14,6 @@ output "public_route_table_ids" {
   value = module.vpc.public_route_table_ids
 }
 
-output "owner_id" {
-  value = module.vpc.owner_id
-}
-
-output "region" {
-  value = module.vpc.region
+output "vpc_owner_id" {
+  value = module.vpc.vpc_owner_id
 }
