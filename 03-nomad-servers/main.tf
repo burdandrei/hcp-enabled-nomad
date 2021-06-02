@@ -65,7 +65,7 @@ module "servers" {
     nomad_region     = var.nomad_region,
     nomad_datacenter = var.cluster_name,
     consul_ca_file   = base64decode(data.terraform_remote_state.hcp.outputs.consul_ca_file),
-    consul_acl_token = data.terraform_remote_state.hcp.consul_root_token_secret_id
+    consul_acl_token = data.terraform_remote_state.hcp.outputs.consul_root_token_secret_id
   })
 
   subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets
@@ -73,8 +73,6 @@ module "servers" {
   # To make testing easier, we allow Consul and SSH requests from any IP address here but in a production
   # deployment, we strongly recommend you limit this to the IP address ranges of known, trusted servers inside your VPC.
   allowed_ssh_cidr_blocks = ["0.0.0.0/0"]
-
-
 
 }
 
