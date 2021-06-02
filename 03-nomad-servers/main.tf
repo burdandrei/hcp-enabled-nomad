@@ -30,7 +30,7 @@ data "terraform_remote_state" "hcp" {
   config = {
     organization = "bandrei_hc"
     workspaces = {
-      name = "01-HCP"
+      name = "02-HCP"
     }
   }
 }
