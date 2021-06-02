@@ -9,7 +9,7 @@ data "terraform_remote_state" "vpc" {
   config = {
     organization = "bandrei_hc"
     workspaces = {
-      name = "VPC"
+      name = "01-VPC"
     }
   }
 }
