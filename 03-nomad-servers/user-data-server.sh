@@ -43,6 +43,10 @@ unzip nomad.zip
 chmod +x nomad
 mv nomad /usr/local/bin/nomad
 
+########
+# Consul config
+########
+
 mkdir -p /etc/consul.d
 mkdir -p /var/lib/consul
 cat << EOCCF >/etc/consul.d/client.hcl
@@ -95,6 +99,35 @@ cat << EOCCA >/var/lib/consul/ca.pem
 ${consul_ca_file}
 EOCCA
 
+
+cat << EOCSU >/etc/systemd/system/consul.service
+[Unit]
+Description="HashiCorp Consul - A service mesh solution"
+Documentation=https://www.consul.io/
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=notify
+ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d/
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillMode=process
+KillSignal=SIGTERM
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+EOCSU
+
+##########
+# Nomad config
+##########
+
+cat << EONEF >/etc/default/nomad
+CONSUL_HTTP_TOKEN=${consul_acl_token}
+EONEF
+
 mkdir -p /etc/nomad.d/
 cat << EONCF >/etc/nomad.d/server.hcl
 bind_addr          = "0.0.0.0"
@@ -110,29 +143,6 @@ server {
 }
 EONCF
 
-cat << EOCSU >/etc/systemd/system/consul.service
-[Unit]
-Description="HashiCorp Consul - A service mesh solution"
-Documentation=https://www.consul.io/
-Requires=network-online.target
-After=network-online.target
-ConditionFileNotEmpty=/etc/consul.d/consul.hcl
-
-[Service]
-Type=notify
-User=consul
-Group=consul
-ExecStart=/usr/bin/consul agent -config-dir=/etc/consul.d/
-ExecReload=/bin/kill --signal HUP $MAINPID
-KillMode=process
-KillSignal=SIGTERM
-Restart=on-failure
-LimitNOFILE=65536
-
-[Install]
-WantedBy=multi-user.target
-EOCSU
-
 cat << EONSU >/etc/systemd/system/nomad.service
 [Unit]
 Description=nomad agent
@@ -141,6 +151,7 @@ After=network-online.target consul.service
 [Service]
 LimitNOFILE=65536
 Restart=on-failure
+EnvironmentFile=/etc/default/nomad
 ExecStart=/usr/local/bin/nomad agent -config /etc/nomad.d
 KillSignal=SIGINT
 RestartSec=5s
