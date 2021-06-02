@@ -20,6 +20,56 @@ apt-get install -y \
     jq \
     unzip
 
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+
+add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io
+
+
+#####
+# Configure resolving
+#####
+
+echo "Determining local IP address"
+LOCAL_IPV4=$(hostname --ip-address)
+
+
+mkdir -p /etc/systemd/resolved.conf.d
+cat << EOSDRCF >/etc/systemd/resolved.conf.d/consul.conf
+# Enable forward lookup of the 'consul' domain:
+[Resolve]
+Cache=no
+DNS=127.0.0.1:8600
+Domains=~.consul
+EOSDRCF
+
+cat << EOSDRLF >/etc/systemd/resolved.conf.d/listen.conf
+# Enable listener on private ip:
+[Resolve]
+DNSStubListenerExtra=${LOCAL_IPV4}
+EOSDRLF
+
+systemctl restart systemd-resolved.service
+
+cat << EODDJ >/etc/docker/daemon.json
+{
+  "dns": ["${LOCAL_IPV4}"],
+  "dns-search": ["service.consul"]
+}
+EODDJ
+
+systemctl restart docker.service
+
+
+######
+# Install Consul and Nomad
+######
+
 echo "Checking latest Consul and Nomad versions..."
 CHECKPOINT_URL="https://checkpoint-api.hashicorp.com/v1/check"
 CONSUL_VERSION=$(curl -s "$${CHECKPOINT_URL}"/consul | jq -r .current_version)
@@ -127,7 +177,7 @@ CONSUL_HTTP_TOKEN=${consul_acl_token}
 EONEF
 
 mkdir -p /etc/nomad.d/
-cat << EONCF >/etc/nomad.d/server.hcl
+cat << EONCF >/etc/nomad.d/client.hcl
 bind_addr          = "0.0.0.0"
 region             = "${nomad_region}"
 datacenter         = "${nomad_datacenter}"
@@ -135,11 +185,17 @@ data_dir           = "/var/lib/nomad/"
 log_level          = "DEBUG"
 leave_on_interrupt = true
 leave_on_terminate = true
-server {
-  enabled          = true
-  bootstrap_expect = 3
+client {
+  enabled = true
 }
 EONCF
+
+cat << EONVCF >/etc/nomad.d/vault.hcl
+vault {
+  enabled = true
+  address = "${vault_endpoint}"
+}
+EONVCF
 
 cat << EONSU >/etc/systemd/system/nomad.service
 [Unit]
