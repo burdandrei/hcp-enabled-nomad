@@ -15,6 +15,25 @@ data "aws_ami" "base" {
   }
 }
 
+data "terraform_remote_state" "vpc" {
+  backend = "remote"
+  config = {
+    organization = "bandrei_hc"
+    workspaces = {
+      name = "01-VPC"
+    }
+  }
+}
+
+data "terraform_remote_state" "hcp" {
+  backend = "remote"
+  config = {
+    organization = "bandrei_hc"
+    workspaces = {
+      name = "01-HCP"
+    }
+  }
+}
 
 #---------------------------------------------------------------------------------------------------------------------
 # DEPLOY THE SERVER NODES
@@ -42,8 +61,10 @@ module "servers" {
 
 
   user_data = templatefile("user-data-server.sh", {
-    cluster_tag_key   = var.cluster_tag_key,
-    cluster_tag_value = var.cluster_name
+    nomad_region     = var.nomad_region,
+    nomad_datacenter = var.cluster_name,
+    consul_ca_file   = base64decode(data.terraform_remote_state.hcp.outputs.consul_ca_file),
+    consul_acl_token = data.terraform_remote_state.hcp.consul_root_token_secret_id
   })
 
   subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets
@@ -61,7 +82,8 @@ module "servers" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "nomad_security_group_rules" {
-  source = "github.com/hashicorp/terraform-aws-nomad.git//modules/nomad-security-group-rules?ref=v0.6.0"
+  source  = "hashicorp/nomad/aws"
+  version = "0.9.0"
 
   security_group_id           = module.servers.security_group_id
   allowed_inbound_cidr_blocks = var.allowed_inbound_cidr_blocks
