@@ -50,4 +50,5 @@ resource "vault_token" "nomad_server" {
 
 output "nomad_server_vault_token" {
   value = vault_token.nomad_server.client_token
+  sensitive = true
 }
