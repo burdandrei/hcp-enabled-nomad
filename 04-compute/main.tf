@@ -75,6 +75,7 @@ module "servers" {
     nomad_region     = var.nomad_region,
     nomad_datacenter = var.cluster_name,
     consul_ca_file   = base64decode(data.terraform_remote_state.hcp.outputs.consul_ca_file),
+    consul_gossip_encrypt_key = data.terraform_remote_state.hcp.outputs.consul_gossip_encrypt_key,
     consul_acl_token = data.terraform_remote_state.hcp.outputs.consul_root_token_secret_id,
     vault_endpoint = data.terraform_remote_state.hcp.outputs.vault_private_endpoint_url,
     vault_token = data.terraform_remote_state.vault_config.outputs.nomad_server_vault_token
@@ -115,6 +116,7 @@ module "clients" {
     nomad_region     = var.nomad_region,
     nomad_datacenter = var.cluster_name,
     consul_ca_file   = base64decode(data.terraform_remote_state.hcp.outputs.consul_ca_file),
+    consul_gossip_encrypt_key = data.terraform_remote_state.hcp.outputs.consul_gossip_encrypt_key,
     consul_acl_token = data.terraform_remote_state.hcp.outputs.consul_root_token_secret_id,
     vault_endpoint   = data.terraform_remote_state.hcp.outputs.vault_private_endpoint_url
   })

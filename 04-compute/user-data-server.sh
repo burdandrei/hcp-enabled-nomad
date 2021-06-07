@@ -64,7 +64,7 @@ cat << EOCCF >/etc/consul.d/client.hcl
 
 "datacenter" = "demo-consul"
 
-"encrypt" = "rq4c2wZHfWPbZeqOZQFFww=="
+"encrypt" = "${consul_gossip_encrypt_key}"
 
 "encrypt_verify_incoming" = true
 
