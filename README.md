@@ -1,3 +1,3 @@
 # Demo for Terraform Cloud provisioned Nomad cluster backed by HCP Consul and Vault
 
-It will provision VPC, HVN, connect it and deploy Consul, Vault and Nomad
+It will provision VPC, HVN, connect it and deploy Consul, Vault in HCP and Nomad in AWS
