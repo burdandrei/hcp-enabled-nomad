@@ -11,39 +11,10 @@ data "aws_ami" "base" {
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/*ubuntu-hirsute-21.04-amd64-server-*"]
+    values = ["ubuntu/images/*ubuntu-jammy-22.04-amd64-server-*"]
   }
 }
 
-data "terraform_remote_state" "vpc" {
-  backend = "remote"
-  config = {
-    organization = "bandrei_hc"
-    workspaces = {
-      name = "01-VPC"
-    }
-  }
-}
-
-data "terraform_remote_state" "hcp" {
-  backend = "remote"
-  config = {
-    organization = "bandrei_hc"
-    workspaces = {
-      name = "02-HCP"
-    }
-  }
-}
-
-data "terraform_remote_state" "vault_config" {
-  backend = "remote"
-  config = {
-    organization = "bandrei_hc"
-    workspaces = {
-      name = "03-vault-config"
-    }
-  }
-}
 
 #---------------------------------------------------------------------------------------------------------------------
 # DEPLOY THE SERVER NODES
@@ -56,7 +27,7 @@ module "servers" {
   allowed_inbound_cidr_blocks = ["0.0.0.0/0"]
   ami_id                      = data.aws_ami.base.image_id
   spot_price                  = var.spot_price
-  vpc_id                      = data.terraform_remote_state.vpc.outputs.vpc_id
+  vpc_id                      = module.vpc.vpc_id
   ssh_key_name                = var.ssh_key_name
 
   # end of required variables
@@ -72,16 +43,16 @@ module "servers" {
 
 
   user_data = templatefile("user-data-server.sh", {
-    nomad_region     = var.nomad_region,
-    nomad_datacenter = var.cluster_name,
-    consul_ca_file   = base64decode(data.terraform_remote_state.hcp.outputs.consul_ca_file),
-    consul_gossip_encrypt_key = data.terraform_remote_state.hcp.outputs.consul_gossip_encrypt_key,
-    consul_acl_token = data.terraform_remote_state.hcp.outputs.consul_root_token_secret_id,
-    vault_endpoint = data.terraform_remote_state.hcp.outputs.vault_private_endpoint_url,
-    vault_token = data.terraform_remote_state.vault_config.outputs.nomad_server_vault_token
+    nomad_region              = var.region,
+    nomad_datacenter          = var.cluster_name,
+    consul_ca_file            = base64decode(hcp_consul_cluster.demo_hcp_consul.consul_ca_file),
+    consul_gossip_encrypt_key = jsondecode(base64decode(hcp_consul_cluster.demo_hcp_consul.consul_config_file)).encrypt,
+    consul_acl_token          = hcp_consul_cluster.demo_hcp_consul.consul_root_token_secret_id,
+    vault_endpoint            = hcp_vault_cluster.demo_hcp_vault.vault_private_endpoint_url,
+    vault_token               = vault_token.nomad_server.client_token
   })
 
-  subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets
+  subnet_ids = module.vpc.public_subnets
 
   # To make testing easier, we allow Consul and SSH requests from any IP address here but in a production
   # deployment, we strongly recommend you limit this to the IP address ranges of known, trusted servers inside your VPC.
@@ -97,7 +68,7 @@ module "clients" {
   allowed_inbound_cidr_blocks = ["0.0.0.0/0"]
   ami_id                      = data.aws_ami.base.image_id
   spot_price                  = var.spot_price
-  vpc_id                      = data.terraform_remote_state.vpc.outputs.vpc_id
+  vpc_id                      = module.vpc.vpc_id
   ssh_key_name                = var.ssh_key_name
 
   # end of required variables
@@ -113,15 +84,15 @@ module "clients" {
 
 
   user_data = templatefile("user-data-client.sh", {
-    nomad_region     = var.nomad_region,
-    nomad_datacenter = var.cluster_name,
-    consul_ca_file   = base64decode(data.terraform_remote_state.hcp.outputs.consul_ca_file),
-    consul_gossip_encrypt_key = data.terraform_remote_state.hcp.outputs.consul_gossip_encrypt_key,
-    consul_acl_token = data.terraform_remote_state.hcp.outputs.consul_root_token_secret_id,
-    vault_endpoint   = data.terraform_remote_state.hcp.outputs.vault_private_endpoint_url
+    nomad_region              = var.region,
+    nomad_datacenter          = var.cluster_name,
+    consul_ca_file            = base64decode(hcp_consul_cluster.demo_hcp_consul.consul_ca_file),
+    consul_gossip_encrypt_key = jsondecode(base64decode(hcp_consul_cluster.demo_hcp_consul.consul_config_file)).encrypt,
+    consul_acl_token          = hcp_consul_cluster.demo_hcp_consul.consul_root_token_secret_id,
+    vault_endpoint            = hcp_vault_cluster.demo_hcp_vault.vault_private_endpoint_url
   })
 
-  subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets
+  subnet_ids = module.vpc.public_subnets
 
   # To make testing easier, we allow Consul and SSH requests from any IP address here but in a production
   # deployment, we strongly recommend you limit this to the IP address ranges of known, trusted servers inside your VPC.

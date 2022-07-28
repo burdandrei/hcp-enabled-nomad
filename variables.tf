@@ -1,3 +1,30 @@
+# VPC #
+
+
+variable "region" {
+  description = "The region of the VPC, HCP HVN and Vault & Consul clusters"
+  type        = string
+  default     = "eu-central-1"
+}
+
+variable "name" {
+  type    = string
+  default = "hcpenablednomad"
+}
+variable "public_subnets" {
+  type = list(any)
+  default = [
+    "10.0.20.0/24",
+    "10.0.21.0/24",
+    "10.0.22.0/24",
+  ]
+}
+variable "cidr" {
+  default = "10.0.0.0/16"
+}
+
+# Compute 
+
 variable "ami_id" {
   description = "The ID of the AMI to run in the cluster. This should be an AMI built from the Packer template under examples/consul-ami/consul.json. To keep this example simple, we run the same AMI on both server and client nodes, but in real-world usage, your client nodes would also run your apps. If the default value is used, Terraform will look up the latest AMI build automatically."
   type        = string
@@ -52,13 +79,8 @@ variable "allowed_inbound_cidr_blocks" {
   default     = ["0.0.0.0/0"]
 }
 
-
-variable "nomad_region" {
-  type        = string
-  description = "Nomad Region"
-}
-
 variable "nomad_datacenter" {
   type        = string
   description = "Nomad Datacenter"
+  default     = "demo"
 }

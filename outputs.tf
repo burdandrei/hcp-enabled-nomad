@@ -1,4 +1,29 @@
+# VPC
+
 output "cidr_block" {
+  value = module.vpc.vpc_cidr_block
+}
+
+output "vpc_id" {
+  value = module.vpc.vpc_id
+}
+
+output "public_subnets" {
+  value = module.vpc.public_subnets
+}
+
+output "public_route_table_ids" {
+  value = module.vpc.public_route_table_ids
+}
+
+output "vpc_owner_id" {
+  value = module.vpc.vpc_owner_id
+}
+
+
+# HVN
+
+output "hvn_cidr_block" {
   value = hcp_hvn.demo_hcp_hvn.cidr_block
 }
 
@@ -24,6 +49,6 @@ output "vault_public_endpoint_url" {
 }
 
 output "vault_admin_token" {
-  value = hcp_vault_cluster_admin_token.demo_hcp_vault_token.token
+  value     = hcp_vault_cluster_admin_token.demo_hcp_vault_token.token
   sensitive = true
 }
