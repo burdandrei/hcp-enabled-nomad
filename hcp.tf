@@ -1,21 +1,3 @@
-terraform {
-  required_providers {
-    hcp = {
-      source  = "hashicorp/hcp"
-      version = "0.37.0"
-    }
-    vault = {
-      source  = "hashicorp/vault"
-      version = "3.8.0"
-    }
-  }
-}
-
-provider "hcp" {
-  # Configuration options
-}
-
-
 resource "hcp_hvn" "demo_hcp_hvn" {
   hvn_id         = "demo-hvn"
   cloud_provider = "aws"
@@ -40,6 +22,9 @@ resource "hcp_hvn_route" "hvn-to-vpc" {
 resource "aws_vpc_peering_connection_accepter" "peer" {
   vpc_peering_connection_id = hcp_aws_network_peering.peer.provider_peering_id
   auto_accept               = true
+  accepter {
+    allow_remote_vpc_dns_resolution = true
+  }
 }
 
 resource "aws_route" "hvn-peering" {
